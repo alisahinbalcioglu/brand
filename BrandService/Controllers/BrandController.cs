@@ -25,7 +25,7 @@ public class BrandController : Controller
     {
         var brands = await _context.Brands.ToListAsync();
 
-        if (brands.Count < 0)
+        if (brands.Count <= 0)
         {
             return NotFound();
         }
@@ -40,24 +40,28 @@ public class BrandController : Controller
     public async Task<ActionResult<Brand>> Get(int id)
     {
         var brand = await _context.Brands.FindAsync(id);
-
+        
         if (brand == null)
         {
             return NotFound();
         }
+
+        brand.Parent = _context.Brands.FirstOrDefault(x => x.Id == brand.ParentId);
+
+        brand.Children = _context.Brands.Where(x => x.ParentId == brand.Id).ToArray();
 
         return Ok(brand);
     }
 
     [HttpPost]
     [ProducesResponseType(typeof(Brand), 201)]
-    [ProducesResponseType(typeof(void), 404)]
+    [ProducesResponseType(typeof(void), 400)]
     [Consumes("application/json")]
     [Produces("application/json")]
     public async Task<IActionResult> Post(Brand brand)
     {
         _context.Brands.Add(brand);
-        
+
         await _context.SaveChangesAsync();
 
         return CreatedAtAction(nameof(Get), new { id = brand.Id }, brand);
@@ -92,8 +96,8 @@ public class BrandController : Controller
 
     [HttpDelete("{id:int}")]
     [ProducesResponseType(typeof(void), 204)]
+    [ProducesResponseType(typeof(void), 400)]
     [ProducesResponseType(typeof(void), 404)]
-    [Consumes("application/json")]
     public async Task<IActionResult> Delete(int id)
     {
         var brand = await _context.Brands.FindAsync(id);
@@ -101,6 +105,11 @@ public class BrandController : Controller
         if (brand == null)
         {
             return NotFound();
+        }
+
+        if (brand.Children is { Count: >= 1 })
+        {
+            return BadRequest();
         }
 
         _context.Brands.Remove(brand);

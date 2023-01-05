@@ -15,6 +15,6 @@ public class AppDbContext : DbContext
             .HasOne(b => b.Parent)
             .WithMany(b => b.Children)
             .HasForeignKey(b => b.ParentId)
-            .OnDelete(DeleteBehavior.NoAction);
+            .OnDelete(DeleteBehavior.Cascade);
     }
 }

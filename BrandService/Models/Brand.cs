@@ -35,5 +35,5 @@ public class Brand
     
     public Brand? Parent { get; set; }
     
-    public Brand[]? Children { get; set; }
+    public ICollection<Brand>? Children { get; set; }
 }
